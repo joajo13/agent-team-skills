@@ -33,8 +33,7 @@
     "type": "git",
     "url": "https://github.com/joajo13/agent-team-skills.git"
   },
-  "dependencies": {
-    "@clack/prompts": "^0.9.1",
-    "picocolors": "^1.1.1"
+  "engines": {
+    "node": ">=14"
   }
 }

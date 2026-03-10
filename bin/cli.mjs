@@ -1,27 +1,24 @@
 #!/usr/bin/env node
 
-// Global error handler — always show something
-process.on('uncaughtException', (err) => {
-  console.error('\n[agent-team-skills] Fatal error:', err.message);
-  console.error('Try running with: npx --yes github:joajo13/agent-team-skills --all');
-  console.error('Or: npx --yes github:joajo13/agent-team-skills --help\n');
-  process.exit(1);
-});
-
-let pc;
-try {
-  pc = (await import('picocolors')).default;
-} catch {
-  // If picocolors fails, use no-op color functions
-  pc = new Proxy({}, { get: () => (s) => s });
-}
-
 import { execSync } from 'node:child_process';
 import { existsSync, mkdirSync, copyFileSync } from 'node:fs';
 import { resolve, join, dirname, basename } from 'node:path';
 import { homedir, platform } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { createInterface } from 'node:readline';
+
+// Color helper — inline, zero dependencies
+const hasColor = process.stdout.isTTY !== false && !process.env.NO_COLOR;
+const pc = {
+  bold: (s) => hasColor ? `\x1b[1m${s}\x1b[22m` : s,
+  dim: (s) => hasColor ? `\x1b[2m${s}\x1b[22m` : s,
+  cyan: (s) => hasColor ? `\x1b[36m${s}\x1b[39m` : s,
+  green: (s) => hasColor ? `\x1b[32m${s}\x1b[39m` : s,
+  red: (s) => hasColor ? `\x1b[31m${s}\x1b[39m` : s,
+  yellow: (s) => hasColor ? `\x1b[33m${s}\x1b[39m` : s,
+  bgCyan: (s) => hasColor ? `\x1b[46m${s}\x1b[49m` : s,
+  black: (s) => hasColor ? `\x1b[30m${s}\x1b[39m` : s,
+};
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -260,157 +257,9 @@ async function installGlobal(ide) {
   return { ok: false, copied: [], skipped: [], errors: [{ file: '-', error: 'Global install not supported' }] };
 }
 
-// ─── Main: Interactive TUI (clack version) ───────────────────────────────────
+// ─── Main: Interactive TUI ───────────────────────────────────────────────────
 
-async function runClackInteractive() {
-  const p = await import('@clack/prompts');
-
-  p.intro(`${pc.bgCyan(pc.black(' agent-team-skills '))}  ${pc.dim('plan → implement → verify → iterate')}`);
-
-  const s = p.spinner();
-  s.start('Detecting installed IDEs...');
-
-  const detected = IDES.map(detectIDE);
-  await new Promise((r) => setTimeout(r, 600));
-
-  const detectedCount = detected.filter((d) => d.detected).length;
-  s.stop(
-    `Found ${pc.bold(detectedCount)} IDE${detectedCount !== 1 ? 's' : ''}:  ${detected
-      .map((d) => (d.detected ? pc.green(`✓ ${d.name}`) : pc.dim(`✗ ${d.name}`)))
-      .join('  ')}`
-  );
-
-  const selectedIdes = await p.multiselect({
-    message: 'Select IDEs to install for:',
-    options: detected.map((d) => ({
-      value: d.id,
-      label: d.name,
-      hint: d.detected ? 'detected' : 'not detected',
-    })),
-    initialValues: detected.filter((d) => d.detected).map((d) => d.id),
-    required: true,
-  });
-
-  if (p.isCancel(selectedIdes)) {
-    p.cancel('Installation cancelled.');
-    process.exit(0);
-  }
-
-  const selectedFull = detected.filter((d) => selectedIdes.includes(d.id));
-  const hasGlobalSupport = selectedFull.some((d) => d.supportsGlobal);
-
-  const modeOptions = [
-    { value: 'project', label: `Current project`, hint: basename(CWD) },
-  ];
-  if (hasGlobalSupport) {
-    modeOptions.push({ value: 'global', label: 'Global (user-wide)', hint: 'where supported' });
-  }
-  modeOptions.push({ value: 'custom', label: 'Custom path...' });
-
-  const mode = await p.select({
-    message: 'Installation mode:',
-    options: modeOptions,
-  });
-
-  if (p.isCancel(mode)) {
-    p.cancel('Installation cancelled.');
-    process.exit(0);
-  }
-
-  let targetDir = CWD;
-
-  if (mode === 'custom') {
-    const customPath = await p.text({
-      message: 'Enter the project path:',
-      placeholder: './my-project',
-      validate: (val) => {
-        if (!val) return 'Path is required';
-        const resolved = resolve(val);
-        if (!existsSync(resolved)) return `Directory not found: ${resolved}`;
-      },
-    });
-    if (p.isCancel(customPath)) {
-      p.cancel('Installation cancelled.');
-      process.exit(0);
-    }
-    targetDir = resolve(customPath);
-  }
-
-  let overwriteAll = false;
-  if (mode !== 'global') {
-    const existingFiles = [];
-    for (const ide of selectedFull) {
-      for (const destRel of Object.values(ide.projectFiles)) {
-        if (existsSync(join(targetDir, destRel))) existingFiles.push(destRel);
-      }
-    }
-    if (existingFiles.length > 0) {
-      const overwrite = await p.confirm({
-        message: `${existingFiles.length} file${existingFiles.length > 1 ? 's' : ''} already exist. Overwrite?`,
-        initialValue: false,
-      });
-      if (p.isCancel(overwrite)) {
-        p.cancel('Installation cancelled.');
-        process.exit(0);
-      }
-      overwriteAll = overwrite;
-    }
-  }
-
-  const s2 = p.spinner();
-  const results = [];
-
-  for (const ide of selectedFull) {
-    s2.start(`Installing for ${pc.bold(ide.name)}...`);
-    let result;
-    if (mode === 'global' && ide.supportsGlobal) {
-      result = await installGlobal(ide);
-    } else {
-      result = await installProject(ide, targetDir, overwriteAll);
-    }
-    results.push({ ide, result });
-    const c = result.copied?.length || 0;
-    const sk = result.skipped?.length || 0;
-    const e = result.errors?.length || 0;
-    let status = '';
-    if (c > 0) status += pc.green(`${c} copied`);
-    if (sk > 0) status += (status ? ', ' : '') + pc.yellow(`${sk} skipped`);
-    if (e > 0) status += (status ? ', ' : '') + pc.red(`${e} errors`);
-    if (result.method) status = pc.green(result.method);
-    s2.stop(`${pc.bold(ide.name)}  ${pc.dim('—')}  ${status}`);
-  }
-
-  const totalCopied = results.reduce((sum, r) => sum + (r.result.copied?.length || 0), 0);
-  const totalErrors = results.reduce((sum, r) => sum + (r.result.errors?.length || 0), 0);
-
-  if (totalErrors > 0) {
-    p.log.warn('Some files had errors:');
-    for (const { ide, result } of results) {
-      for (const err of result.errors || []) {
-        p.log.error(`  ${ide.name}: ${err.file} — ${err.error}`);
-      }
-    }
-  }
-
-  p.note(
-    [
-      `Run ${pc.cyan('/plan')} to start a planning session`,
-      `Run ${pc.cyan('/cycle')} for the full plan → implement → verify loop`,
-      `Run ${pc.cyan('/implement')} or ${pc.cyan('/verify')} individually`,
-    ].join('\n'),
-    'Next steps'
-  );
-
-  p.outro(
-    totalErrors === 0
-      ? `${pc.green('✓')} Installed ${pc.bold(totalCopied)} files for ${pc.bold(selectedFull.length)} IDE${selectedFull.length > 1 ? 's' : ''}`
-      : `${pc.yellow('⚠')} Completed with ${totalErrors} error${totalErrors > 1 ? 's' : ''}`
-  );
-}
-
-// ─── Main: Fallback Interactive (readline-based, works everywhere) ───────────
-
-async function runFallbackInteractive() {
+async function runInteractive() {
   banner();
 
   console.log(pc.dim('  Detecting installed IDEs...'));
@@ -603,35 +452,23 @@ async function runNonInteractive(flags) {
 
 // ─── Entry Point ─────────────────────────────────────────────────────────────
 
-console.log(''); // Ensure output starts on a clean line
+async function main() {
+  const flags = parseArgs(process.argv);
 
-const flags = parseArgs(process.argv);
+  if (flags.help) {
+    printHelp();
+    process.exit(0);
+  }
 
-if (flags.help) {
-  printHelp();
-  process.exit(0);
-}
-
-if (flags.nonInteractive) {
-  runNonInteractive(flags);
-} else {
-  // Always use the readline-based TUI by default (most compatible).
-  // The clack TUI is available via --fancy flag for users with proper TTY.
-  const useFancy = process.argv.includes('--fancy') && process.stdin.isTTY && process.stdout.isTTY;
-
-  if (useFancy) {
-    runClackInteractive().catch(() => {
-      runFallbackInteractive().catch((err) => {
-        console.error(`\n[agent-team-skills] Error: ${err.message}`);
-        console.error('Try: npx --yes github:joajo13/agent-team-skills --all\n');
-        process.exit(1);
-      });
-    });
+  if (flags.nonInteractive) {
+    await runNonInteractive(flags);
   } else {
-    runFallbackInteractive().catch((err) => {
-      console.error(`\n[agent-team-skills] Error: ${err.message}`);
-      console.error('Try: npx --yes github:joajo13/agent-team-skills --all\n');
-      process.exit(1);
-    });
+    await runInteractive();
   }
 }
+
+main().catch((err) => {
+  console.error(`\n[agent-team-skills] Error: ${err.message}`);
+  console.error('Try: npx --yes github:joajo13/agent-team-skills --all\n');
+  process.exit(1);
+});
