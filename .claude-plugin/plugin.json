@@ -1,0 +1,7 @@
+{
+  "name": "agent-team-skills",
+  "description": "A multi-agent team that orchestrates plan/debate, implementation, and verification cycles. Works across Claude Code, Cursor, VSCode Copilot, and OpenCode.",
+  "author": {
+    "name": "Juan"
+  }
+}

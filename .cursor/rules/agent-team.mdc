@@ -1,0 +1,49 @@
+---
+description: Multi-agent workflow for structured planning, implementation, and verification cycles
+alwaysApply: true
+---
+
+# Agent Team Workflow
+
+This project follows a structured plan → implement → verify cycle for complex tasks.
+
+## Workflow
+
+When the user requests a non-trivial change (3+ files, ambiguous requirements, architectural impact):
+
+### 1. Planning Phase
+- Explore the codebase to understand existing patterns and structure
+- Ask 2-4 clarifying questions about scope, constraints, and edge cases
+- Create a structured plan in `PLAN.md` at the project root with:
+  - Goal (one sentence)
+  - Tasks (checkboxes with file paths)
+  - Technical decisions and reasoning
+  - Files to modify with descriptions
+  - Verification steps
+- Debate the plan with the user. Challenge weak points. Refine until approved.
+
+### 2. Implementation Phase
+- Read the approved `PLAN.md`
+- Read all files that will be modified first
+- Implement each task in order, matching existing codebase style
+- Only change what the plan specifies — no extras
+- Self-check: run available linters, type-checkers, tests
+- Report what was changed
+
+### 3. Verification Phase
+- Review every task against the plan
+- Check completeness, correctness, and code quality
+- Run all available automated checks (tests, build, lint)
+- Produce a PASS or FAIL verdict with specific issues
+
+### 4. Iteration (if needed)
+- Fix only the issues identified by verification
+- Re-verify after fixes
+- Maximum 3 iterations before escalating to user
+
+## Principles
+- Ground plans in the actual codebase — read files before proposing changes
+- Match existing patterns and conventions
+- Keep it simple — don't over-engineer
+- Be specific in feedback — show file paths and line numbers
+- Challenge assumptions constructively during planning
