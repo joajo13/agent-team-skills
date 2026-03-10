@@ -1,6 +1,21 @@
 #!/usr/bin/env node
 
-import pc from 'picocolors';
+// Global error handler — always show something
+process.on('uncaughtException', (err) => {
+  console.error('\n[agent-team-skills] Fatal error:', err.message);
+  console.error('Try running with: npx --yes github:joajo13/agent-team-skills --all');
+  console.error('Or: npx --yes github:joajo13/agent-team-skills --help\n');
+  process.exit(1);
+});
+
+let pc;
+try {
+  pc = (await import('picocolors')).default;
+} catch {
+  // If picocolors fails, use no-op color functions
+  pc = new Proxy({}, { get: () => (s) => s });
+}
+
 import { execSync } from 'node:child_process';
 import { existsSync, mkdirSync, copyFileSync } from 'node:fs';
 import { resolve, join, dirname, basename } from 'node:path';
@@ -588,6 +603,8 @@ async function runNonInteractive(flags) {
 
 // ─── Entry Point ─────────────────────────────────────────────────────────────
 
+console.log(''); // Ensure output starts on a clean line
+
 const flags = parseArgs(process.argv);
 
 if (flags.help) {
@@ -598,20 +615,22 @@ if (flags.help) {
 if (flags.nonInteractive) {
   runNonInteractive(flags);
 } else {
-  // Try clack (beautiful TUI), fall back to readline (works everywhere)
-  const isTTY = process.stdin.isTTY && process.stdout.isTTY;
+  // Always use the readline-based TUI by default (most compatible).
+  // The clack TUI is available via --fancy flag for users with proper TTY.
+  const useFancy = process.argv.includes('--fancy') && process.stdin.isTTY && process.stdout.isTTY;
 
-  if (isTTY) {
+  if (useFancy) {
     runClackInteractive().catch(() => {
-      // If clack fails (TTY issues), try fallback
       runFallbackInteractive().catch((err) => {
-        console.error(pc.red(`\nError: ${err.message}\n`));
+        console.error(`\n[agent-team-skills] Error: ${err.message}`);
+        console.error('Try: npx --yes github:joajo13/agent-team-skills --all\n');
         process.exit(1);
       });
     });
   } else {
     runFallbackInteractive().catch((err) => {
-      console.error(pc.red(`\nError: ${err.message}\n`));
+      console.error(`\n[agent-team-skills] Error: ${err.message}`);
+      console.error('Try: npx --yes github:joajo13/agent-team-skills --all\n');
       process.exit(1);
     });
   }
