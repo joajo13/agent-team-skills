@@ -18,55 +18,40 @@ User Request → Plan & Debate → Implement → Verify → Done
 | **Implementer** | Executes the approved plan task by task, self-checks |
 | **Verifier** | Reviews against plan, runs tests/lint/build, passes or sends back |
 
-## Quick Start
+## Install
 
-### Claude Code
+One command, all IDEs:
 
 ```bash
-# Install as plugin
-claude plugin install /path/to/agent-team-skills
-
-# Or clone and install
-git clone https://github.com/YOUR_USER/agent-team-skills.git
-claude plugin install ./agent-team-skills
+npx agent-team-skills
 ```
 
-Then use the commands:
+This opens an interactive TUI that:
+- Auto-detects which IDEs you have installed
+- Lets you choose which ones to set up
+- Copies the right files to the right places automatically
+
+### Non-interactive mode
+
+```bash
+npx agent-team-skills --all              # All detected IDEs
+npx agent-team-skills --claude --cursor  # Specific IDEs
+npx agent-team-skills --global           # Global install (Claude Code, OpenCode)
+npx agent-team-skills --dir ./my-project # Custom target path
+```
+
+### Manual install
+
+See [INSTALL.md](./INSTALL.md) for per-IDE manual setup instructions.
+
+### Available commands (after install)
+
 ```
 /plan         → Start planning session
 /implement    → Execute the plan
 /verify       → Review implementation
 /cycle        → Full automated loop
 ```
-
-### Cursor
-
-Copy the `.cursor/` directory to your project root. The rules will auto-apply and guide the agent through the plan/implement/verify workflow.
-
-```bash
-cp -r agent-team-skills/.cursor/ your-project/.cursor/
-```
-
-### VSCode with GitHub Copilot
-
-Copy the `.github/` directory to your project root:
-
-```bash
-cp -r agent-team-skills/.github/ your-project/.github/
-```
-
-Custom agents (Planner, Implementer, Verifier) will appear in the Copilot chat mode picker.
-
-### OpenCode
-
-Copy `AGENTS.md` and `opencode.json` to your project root:
-
-```bash
-cp agent-team-skills/AGENTS.md your-project/
-cp agent-team-skills/opencode.json your-project/
-```
-
-Agents will appear in the OpenCode agent selector.
 
 ## Usage
 
@@ -116,6 +101,7 @@ One-sentence summary of what and why.
 
 ```
 agent-team-skills/
+├── bin/cli.mjs                   ← TUI installer (npx agent-team-skills)
 ├── .claude-plugin/plugin.json    ← Claude Code plugin manifest
 ├── agents/
 │   ├── planner.md                ← Plan & debate agent
@@ -136,8 +122,7 @@ agent-team-skills/
 │   └── agents/                   ← Copilot custom agents
 ├── AGENTS.md                     ← OpenCode agent guide
 ├── opencode.json                 ← OpenCode config
-├── README.md
-└── INSTALL.md
+└── package.json                  ← npm package (for npx)
 ```
 
 ## License

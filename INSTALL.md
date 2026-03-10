@@ -1,124 +1,120 @@
 # Installation Guide
 
-## Claude Code
+## Automatic Install (recommended)
 
-### Option 1: Install as Plugin (recommended)
+Run one command from your project directory:
 
 ```bash
-# From local directory
-claude plugin install /path/to/agent-team-skills
-
-# From GitHub
-claude plugin install https://github.com/YOUR_USER/agent-team-skills
+npx agent-team-skills
 ```
 
-This makes the agents, commands, and skills available globally in Claude Code.
+The TUI installer will:
+1. Detect which IDEs you have installed
+2. Let you select which ones to set up
+3. Copy the correct files automatically
 
-### Option 2: Copy to Project
-
-Copy the relevant directories to your project's `.claude/` folder:
-
-```bash
-cp -r agent-team-skills/agents/ your-project/.claude/agents/
-cp -r agent-team-skills/commands/ your-project/.claude/commands/
-cp -r agent-team-skills/skills/ your-project/.claude/skills/
-```
-
-### Verify Installation
+### CLI flags for automation
 
 ```bash
-# In Claude Code, test the commands:
-/plan
-/implement
-/verify
-/cycle
+npx agent-team-skills --all                  # All detected IDEs, project mode
+npx agent-team-skills --claude --cursor      # Specific IDEs only
+npx agent-team-skills --global               # Global installation (Claude Code, OpenCode)
+npx agent-team-skills --dir ./my-project     # Install into a specific directory
+npx agent-team-skills --help                 # Show all options
 ```
 
 ---
 
-## Cursor
+## Manual Install
 
-Copy the `.cursor/rules/` directory to your project:
+### Claude Code
+
+**Option 1: As a plugin (global)**
 
 ```bash
-cp -r agent-team-skills/.cursor/ your-project/.cursor/
+claude plugin add github:joajo13/agent-team-skills
+```
+
+**Option 2: Copy to project**
+
+```bash
+cp -r agents/ your-project/.claude/agents/
+cp -r commands/ your-project/.claude/commands/
+cp -r skills/ your-project/.claude/skills/
+```
+
+**Verify**: Run `/plan`, `/implement`, `/verify`, or `/cycle` in Claude Code.
+
+---
+
+### Cursor
+
+Copy the rules to your project:
+
+```bash
+cp -r .cursor/ your-project/.cursor/
 ```
 
 The `agent-team.mdc` rule has `alwaysApply: true`, so it will automatically guide the agent through the plan/implement/verify workflow on complex tasks.
 
-### How to Use
-
-In Cursor's agent chat, describe your task. The rules will guide the agent to:
-1. Plan and create `PLAN.md` before coding
-2. Implement following the plan
-3. Verify the result
-
-You can also explicitly ask: "Follow the plan-implement-verify cycle for this."
+**How to use**: In Cursor's agent chat, describe your task. You can also explicitly ask: "Follow the plan-implement-verify cycle for this."
 
 ---
 
-## VSCode with GitHub Copilot
+### VSCode with GitHub Copilot
 
-### Requirements
-- VSCode 1.99+ (for custom agents support)
-- GitHub Copilot extension
+**Requirements**: VSCode 1.99+ and GitHub Copilot extension.
 
-### Setup
-
-Copy the `.github/` directory to your project root:
+Copy to your project:
 
 ```bash
-cp -r agent-team-skills/.github/ your-project/.github/
+cp -r .github/ your-project/.github/
 ```
 
-### How to Use
-
+**How to use**:
 1. Open Copilot Chat (Ctrl+Shift+I / Cmd+Shift+I)
-2. Click the mode picker at the top of the chat
+2. Click the mode picker at the top
 3. Select **Planner**, **Implementer**, or **Verifier**
-4. Describe your task
-
-The `copilot-instructions.md` provides base context to all agents about the workflow.
 
 ---
 
-## OpenCode
+### OpenCode
 
-Copy the config files to your project root:
+Copy to your project:
 
 ```bash
-cp agent-team-skills/AGENTS.md your-project/
-cp agent-team-skills/opencode.json your-project/
-cp -r agent-team-skills/agents/ your-project/agents/
+cp AGENTS.md your-project/
+cp opencode.json your-project/
+cp -r agents/ your-project/agents/
 ```
 
-### How to Use
-
+**How to use**:
 1. Start OpenCode: `opencode`
-2. Select an agent from the agent picker:
-   - **planner** — for planning sessions
-   - **implementer** — for execution
-   - **verifier** — for review
-3. Describe your task
-
-The `AGENTS.md` file provides universal context, while `opencode.json` configures each agent's tools and temperature.
+2. Select an agent from the picker (planner / implementer / verifier)
 
 ---
 
-## Universal Setup (All IDEs)
-
-For maximum compatibility, copy everything:
+## All IDEs at once (manual)
 
 ```bash
-# Clone the repo
-git clone https://github.com/YOUR_USER/agent-team-skills.git
+git clone https://github.com/joajo13/agent-team-skills.git
+cd agent-team-skills
 
-# Copy all IDE configs to your project
-cp -r agent-team-skills/.cursor/ your-project/.cursor/
-cp -r agent-team-skills/.github/ your-project/.github/
-cp agent-team-skills/AGENTS.md your-project/
-cp agent-team-skills/opencode.json your-project/
-cp -r agent-team-skills/agents/ your-project/agents/
+# Claude Code
+cp -r agents/ ../your-project/.claude/agents/
+cp -r commands/ ../your-project/.claude/commands/
+cp -r skills/ ../your-project/.claude/skills/
+
+# Cursor
+cp -r .cursor/ ../your-project/.cursor/
+
+# VSCode Copilot
+cp -r .github/ ../your-project/.github/
+
+# OpenCode
+cp AGENTS.md ../your-project/
+cp opencode.json ../your-project/
+cp -r agents/ ../your-project/agents/
 ```
 
-The files are designed to coexist — each IDE reads only its own config format.
+All files coexist — each IDE reads only its own config format.

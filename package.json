@@ -1,0 +1,40 @@
+{
+  "name": "agent-team-skills",
+  "version": "1.0.0",
+  "description": "Multi-agent team: plan/implement/verify cycles. For Claude Code, Cursor, VSCode Copilot, and OpenCode.",
+  "type": "module",
+  "bin": {
+    "agent-team-skills": "./bin/cli.mjs"
+  },
+  "files": [
+    "bin/",
+    "agents/",
+    "commands/",
+    "skills/",
+    ".cursor/",
+    ".github/",
+    ".claude-plugin/",
+    "AGENTS.md",
+    "opencode.json"
+  ],
+  "keywords": [
+    "claude-code",
+    "cursor",
+    "copilot",
+    "opencode",
+    "ai-agents",
+    "multi-agent",
+    "skills",
+    "plan-implement-verify"
+  ],
+  "author": "Juan",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joajo13/agent-team-skills.git"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.9.1",
+    "picocolors": "^1.1.1"
+  }
+}
