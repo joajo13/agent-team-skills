@@ -23,7 +23,7 @@ User Request → Plan & Debate → Implement → Verify → Done
 One command, all IDEs:
 
 ```bash
-npx agent-team-skills
+npx github:joajo13/agent-team-skills
 ```
 
 This opens an interactive TUI that:
@@ -34,10 +34,10 @@ This opens an interactive TUI that:
 ### Non-interactive mode
 
 ```bash
-npx agent-team-skills --all              # All detected IDEs
-npx agent-team-skills --claude --cursor  # Specific IDEs
-npx agent-team-skills --global           # Global install (Claude Code, OpenCode)
-npx agent-team-skills --dir ./my-project # Custom target path
+npx github:joajo13/agent-team-skills --all              # All detected IDEs
+npx github:joajo13/agent-team-skills --claude --cursor  # Specific IDEs
+npx github:joajo13/agent-team-skills --global           # Global install (Claude Code, OpenCode)
+npx github:joajo13/agent-team-skills --dir ./my-project # Custom target path
 ```
 
 ### Manual install

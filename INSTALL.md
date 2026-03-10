@@ -5,7 +5,7 @@
 Run one command from your project directory:
 
 ```bash
-npx agent-team-skills
+npx github:joajo13/agent-team-skills
 ```
 
 The TUI installer will:
@@ -16,11 +16,11 @@ The TUI installer will:
 ### CLI flags for automation
 
 ```bash
-npx agent-team-skills --all                  # All detected IDEs, project mode
-npx agent-team-skills --claude --cursor      # Specific IDEs only
-npx agent-team-skills --global               # Global installation (Claude Code, OpenCode)
-npx agent-team-skills --dir ./my-project     # Install into a specific directory
-npx agent-team-skills --help                 # Show all options
+npx github:joajo13/agent-team-skills --all                  # All detected IDEs, project mode
+npx github:joajo13/agent-team-skills --claude --cursor      # Specific IDEs only
+npx github:joajo13/agent-team-skills --global               # Global installation (Claude Code, OpenCode)
+npx github:joajo13/agent-team-skills --dir ./my-project     # Install into a specific directory
+npx github:joajo13/agent-team-skills --help                 # Show all options
 ```
 
 ---
